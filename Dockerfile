@@ -1,20 +1,25 @@
 FROM ubuntu:20.04
 
+# Non-interactive install
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install XRDP + XFCE + tools dasar
+# Update & install XRDP + XFCE
 RUN apt-get update && apt-get install -y \
-    xrdp xfce4 xfce4-terminal sudo wget git build-essential \
+    xrdp xfce4 xfce4-goodies dbus-x11 sudo nano curl wget net-tools \
     && rm -rf /var/lib/apt/lists/*
 
-# Buat user Fauzi dengan password 123456
-RUN useradd -m -s /bin/bash Fauzi && echo 'Fauzi:123456' | chpasswd && adduser Fauzi sudo
+# Buat user Fauzi
+RUN useradd -m -s /bin/bash Fauzi && echo "Fauzi:123456" | chpasswd && adduser Fauzi sudo
 
-# Konfigurasi XRDP agar masuk ke XFCE
-RUN echo "startxfce4" > /etc/skel/.xsession \
-    && echo "startxfce4" > /home/Fauzi/.xsession \
-    && chown Fauzi:Fauzi /home/Fauzi/.xsession
+# Set XFCE sebagai default session
+RUN echo "xfce4-session" > /home/Fauzi/.xsession && chown Fauzi:Fauzi /home/Fauzi/.xsession
 
+# Fix startwm.sh supaya gak blank screen
+RUN sed -i.bak '/test -x \/etc\/X11\/Xsession && exec \/etc\/X11\/Xsession/ s/^/#/' /etc/xrdp/startwm.sh \
+    && echo "startxfce4" >> /etc/xrdp/startwm.sh
+
+# Expose RDP port
 EXPOSE 3389
 
-CMD ["/usr/sbin/xrdp", "-nodaemon"]
+# Jalankan XRDP
+CMD ["/usr/sbin/xrdp-sesman", "--nodaemon"]
