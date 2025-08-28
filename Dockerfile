@@ -20,6 +20,6 @@ RUN sed -i.bak '/test -x \/etc\/X11\/Xsession && exec \/etc\/X11\/Xsession/ s/^/
 
 # Expose RDP port
 EXPOSE 3389
-
+CMD ["/bin/bash", "-c", "service xrdp-sesman start && service xrdp start && tail -f /dev/null"]
 # Jalankan XRDP
 CMD ["/usr/sbin/xrdp-sesman", "--nodaemon"]
